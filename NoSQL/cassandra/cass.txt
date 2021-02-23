@@ -1,0 +1,343 @@
+
+1
+use pruebas;
+drop table pedidos;
+Create  table pedidos
+    (
+        PedidoId int,
+        ClienteId text,
+        DptoId int,
+        Date timestamp,
+        Import int,
+        Primary key(ClienteID, DptoId, Date)
+    );
+
+select * from pedidos where Import=1000;
+
+2 Ojo: esto no se puede probar en el cloud, porque ya se crea el keyspace (en nuestro caso "pruebas")
+DROP KEYSPACE retailing; 
+CREATE KEYSPACE retailing
+WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 3};
+
+Expand ON
+SELECT * FROM system_schema.tables  ;
+
+
+3
+
+drop table pedidos;
+Create  table pedidos
+    (
+        PedidoId int,
+        ClienteId text,
+        DptoId int,
+        Date timestamp,
+        Import int,
+        Primary key(ClienteID, DptoId, Date)
+    );
+    
+    
+3.b) 
+use retailing;
+drop table pedidos;
+Create  table pedidos(
+        PedidoId int,
+        ClienteId text,
+        DptoId int,
+        Date timestamp,
+        Import int,
+        Primary key(ClienteID, DptoId, Date)
+    ) with default_time_to_live  = 5;
+4)
+EXPAND OFF
+truncate pedidos;
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(1,'herminia',1,'2019-04-02 10:45:00',300);
+select * from pedidos;
+
+5) 
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(2,'herminia',1,'2019-04-02 10:45:00',200);
+
+6) 
+use retailing;
+drop table pedidos;
+Create  table pedidos
+    (
+        PedidoId int,
+        ClienteId text,
+        DptoId int,
+        Date timestamp,
+        Import int,
+        Primary key(ClienteID, DptoId, Date, PedidoId)
+    );
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(1,'herminia',1,'2019-04-02 10:45:00',300);
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(2,'herminia',1,'2019-04-02 10:45:00',200);
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(3,'bertoldo',1,'2019-03-29 16:51:00',250);
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(4,'bertoldo',1,'2019-03-29 16:50:00',120);
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(5,'bertoldo',2,'2019-03-29 16:49:00',17);
+select * from pedidos;
+
+7)
+select * from pedidos order by clienteID, DptoId, Date desc; 
+
+select * from pedidos where clienteid='bertoldo' order by  DptoId, Date desc;
+
+select * from pedidos where clienteid='bertoldo' order by  DptoId, Date;
+
+8)
+use retailing;
+drop table pedidos;
+Create  table pedidos
+    (
+        PedidoId int,
+        ClienteId text,
+        DptoId int,
+        Date timestamp,
+        Import int,
+        Primary key(ClienteID, DptoId, Date, PedidoId)
+    ) with clustering order by (DptoId asc, Date desc, PedidoId asc);
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(1,'herminia',1,'2019-04-02 10:45:00',300);
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(2,'herminia',1,'2019-04-02 10:45:00',200);
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(3,'bertoldo',1,'2019-03-29 16:51:00',250);
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(4,'bertoldo',1,'2019-03-29 16:50:00',120);
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import) 
+            values(5,'bertoldo',2,'2019-03-29 16:49:00',17);
+select * from pedidos where clienteid='bertoldo' order by  DptoId, Date desc;
+
+9)
+CREATE TYPE retailing.entrega (
+  horaprevista timestamp,
+  calle  text,
+  piso int,
+  letra int,
+  telfs map<text, frozen <set<text>>>
+);
+
+
+10) 
+CREATE TABLE peticiones (
+    cluster text,
+    date text,
+    time text,
+    peticiones int,
+    PRIMARY KEY ((cluster, date), time)
+);
+insert into peticiones (cluster,date,time,peticiones) 
+            values ('cluster1','2015-05-06','13:00' ,5);
+insert into peticiones (cluster,date,time,peticiones) 
+            values ('cluster3','2015-05-06','13:00' ,3);
+insert into peticiones (cluster,date,time,peticiones) 
+            values ('cluster2','2015-05-06','12:40' ,8);
+insert into peticiones (cluster,date,time,peticiones) 
+            values ('cluster2','2015-05-06','16:40' ,11);
+            
+11) SELECT * FROM  peticiones
+WHERE cluster IN ('cluster1', 'cluster2')
+  AND date = '2015-05-06'
+  AND time >= '12:00' AND time <= '14:00';
+
+12) 
+
+DROP TABLE apps; 
+CREATE TABLE apps (
+    id varchar,
+    tipo varchar,
+    properties  list<text>,
+    PRIMARY KEY ((id, tipo), properties));
+
+ 
+13) 
+
+ DROP TABLE apps; 
+ CREATE TABLE apps (
+    id varchar,
+    tipo varchar,
+    properties frozen <list<text>>,
+    PRIMARY KEY ((id, tipo), properties));
+
+    
+14) CREATE TABLE contacts (
+    id int PRIMARY KEY,
+    firstName text,
+    lastName text,
+    phones map<text, text>,  // tabla hash de telefonos
+    emails set<text>               // conjunto de títulos de email
+);
+CREATE INDEX ON contacts (firstName);
+CREATE INDEX ON contacts (keys(phones));  // solo las claves del map
+CREATE INDEX ON contacts (emails);
+
+SELECT * FROM contacts WHERE firstname = 'Benjamin';
+SELECT * FROM contacts WHERE phones CONTAINS KEY 'office';
+SELECT * FROM contacts WHERE emails CONTAINS 'Benjamin@oops.com';
+
+15) 
+drop table contactos;
+Create table contactos(
+id int primary key,
+nombre text,
+email set<text>);
+insert into contactos(id,nombre,email) 
+values(1,'herminia',{'herminia@gmail.com'});
+
+insert into contactos(id,nombre,email) 
+values(2,'bertoldo',{'berto@gmail.com','morenito19@hotmail.com'});
+
+16) INSERT INTO contactos JSON '{
+  "id" : 3, 
+  "nombre": "calixta",
+  "email" : ["calixta91@uned.es","calixta_91@gmail.com"]
+  }';
+
+17) Update contactos
+    set email = email + {'the_hermi@yahoo.com'}
+    where nombre = 'herminia';
+    
+18) 
+drop table jugador;
+Create table jugador(
+nick text primary key,
+vidas int,
+inventario list<text>);
+
+drop table jugador;
+Create table jugador(
+nick text primary key,
+vidas int,
+inventario  list<  frozen <set<text>> >);
+
+insert into jugador (nick,vidas,inventario) values ('hermi-hacker',14,['escalera','cubo','cubo']);
+19) update jugador 
+    set inventario = ['patines'] + inventario 
+    where nick = 'hermi-hacker';
+    
+    update jugador 
+    set inventario =  inventario + ['linterna']
+    where nick = 'hermi-hacker';
+
+20) 
+use retailing;
+drop table pedidos;
+Create  table pedidos
+    (
+        PedidoId int,
+        ClienteId text,
+        DptoId int,
+        Date timestamp,
+        Import int,
+        telfs map<text,text>,
+        Primary key(ClienteID, DptoId,  PedidoId)
+    ) with clustering order by (DptoId asc,  PedidoId asc);
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import, telfs) 
+            values(1,'herminia',1,'2019-04-02 10:45:00',300,
+                {'fijo': '91561111', 'movil': '689111377'});
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import,telfs) 
+            values(2,'herminia',1,'2019-04-02 10:45:00',200,
+            {'fijo': '91561111', 'movil': '689111377'});
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import,telfs) 
+            values(3,'bertoldo',1,'2019-03-29 16:51:00',250,
+            {'fijo': '93561111', 'movil': '156111377', 
+             'trabajo':'91 394 88 99 - ext 123'});
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import,telfs) 
+            values(4,'bertoldo',1,'2019-03-29 16:50:00',120,
+            {'fijo': '93561111', 'movil': '156111377'});
+insert into pedidos(PedidoId,ClienteId,DptoId,Date,Import,telfs) 
+            values(5,'bertoldo',2,'2019-03-29 16:49:00',17,
+            {'fijo': '93561111', 'movil': '156111377'});
+
+Expand ON
+select * from pedidos;
+
+21 
+Update pedidos 
+Set telfs = telfs + {'avisos por whatsapp':'455123111'} 
+where ClienteId='herminia' and dptoid=1 and pedidoid=1;
+
+22
+Delete telfs['avisos por whatsapp']
+from pedidos 
+where ClienteId='herminia' and dptoid=1 and pedidoid=1;
+
+23
+
+drop table pedidos;
+Create  table pedidos (
+        PedidoId int,
+        ClienteId text,
+        DptoId int,
+        Date timestamp,
+        Import int,
+        Primary key(ClienteID, DptoId, Date)
+    );
+
+    
+Update pedidos 
+set pedidoid=1, import=300
+where 
+ClienteId='herminia' and 
+DptoId=1 and Date='2019-04-02' ;
+
+24) 
+drop table pedidos;
+Create  table pedidos (
+        PedidoId int,
+        ClienteId text,
+        DptoId int,
+        Date timestamp,
+        Import int,
+        Primary key(ClienteID, DptoId, Date)
+    );
+
+    
+Update pedidos 
+set pedidoid=1, import=300
+where 
+ClienteId='herminia' and 
+DptoId=1 and Date='2019-04-02' 
+IF EXISTS;
+
+
+
+///////////////////////////////////
+CREATE KEYSPACE music WITH REPLICATION = {'class' : 'NetworkTopologyStrategy', 'datacenter1' : 1};
+USE music;
+CREATE TABLE music.songs ( id uuid PRIMARY KEY, album text, artist text, data blob, reviews list<text>, tags set<text>, title text, venue map<timestamp, text>);
+CREATE TABLE music.playlists ( id uuid, song_order int, song_id uuid, title text, album text, artist text, PRIMARY KEY  (id, song_order ) );
+
+INSERT INTO music.playlists (id, song_order, song_id, title, artist, album) VALUES (62c36092-82a1-3a00-93d1-46196ee77204, 4, 7db1a490-5878-11e2-bcfd-0800200c9a66, 'Ojo Rojo', 'Fu Manchu', 'No One Rides for Free');
+INSERT INTO music.playlists (id, song_order, song_id, title, artist, album) VALUES (62c36092-82a1-3a00-93d1-46196ee77204, 1, a3e64f8f-bd44-4f28-b8d9-6938726e34d4, 'La Grange', 'ZZ Top', 'Tres Hombres');
+INSERT INTO music.playlists (id, song_order, song_id, title, artist, album) VALUES (62c36092-82a1-3a00-93d1-46196ee77204, 2, 8a172618-b121-4136-bb10-f665cfc469eb, 'Moving in Stereo', 'Fu Manchu', 'We Must Obey');
+INSERT INTO music.playlists (id, song_order, song_id, title, artist, album) VALUES (62c36092-82a1-3a00-93d1-46196ee77204, 3, 2b09185b-fb5a-4734-9b56-49077de9edbf, 'Outside Woman Blues', 'Back Door Slam', 'Roll Away');
+
+UPDATE music.songs SET tags = tags + {'2007'} WHERE id = 8a172618-b121-4136-bb10-f665cfc469eb;
+UPDATE music.songs SET tags = tags + {'covers'} WHERE id = 8a172618-b121-4136-bb10-f665cfc469eb;
+UPDATE music.songs SET tags = tags + {'1973'} WHERE id = a3e64f8f-bd44-4f28-b8d9-6938726e34d4;
+UPDATE music.songs SET tags = tags + {'blues'} WHERE id = a3e64f8f-bd44-4f28-b8d9-6938726e34d4;
+UPDATE music.songs SET tags = tags + {'rock'} WHERE id = 7db1a490-5878-11e2-bcfd-0800200c9a66;
+UPDATE music.songs SET tags = tags + {'rock'} WHERE id = 7db1a490-5878-11e2-bcfd-0800200c9a66;
+UPDATE music.songs SET reviews = reviews + [ 'hot dance music' ] WHERE id = 7db1a490-5878-11e2-bcfd-0800200c9a66;
+
+INSERT INTO music.songs (id, venue) VALUES (7db1a490-5878-11e2-bcfd-0800200c9a66, { '2013-9-22 12:01'  : 'The Fillmore', '2013-10-1 18:00' : 'The Apple Barrel'});
+
+// MY ADDITIONS, LLP, 05.14.15
+
+INSERT INTO music.playlists JSON '{"id" : "8da9da40-f360-11e4-b9b2-1697f925ec7b", "song_order" : 1, "title" : "Drive My Car", "artist" : "The Beatles", "album" : "Rubber Soul"}';
+SELECT JSON * FROM music.playlists;
+SELECT JSON album, title, artist FROM music.playlists;
+
+CREATE TYPE music.address ( street text, city text, zip_code int, phones set<text> );
+CREATE TYPE music.fullname ( firstname text, lastname text );
+CREATE TABLE music.band ( id uuid PRIMARY KEY, name frozen <fullname>, other_members set<frozen <fullname>>, addresses map<text, frozen <address>> );
+COPY music.users FROM 'UDT.csv';
+UPDATE music.band SET addresses = addresses + {'home': { street: 'Downe House', city: 'London', zip_code: 55555, phones: {'44 020 11 12 34 56'}}} WHERE id=7db1a490-5878-11e2-bcfd-0800200c9a66;
+UPDATE music.band SET other_members = { ( 'Keith', 'Richards'), ( 'Charlie', 'Watts') } WHERE id=7db1a490-5878-11e2-bcfd-0800200c9a66;
