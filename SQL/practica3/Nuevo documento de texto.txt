@@ -1,0 +1,106 @@
+REM ******** CONSULTAS *******************
+
+Prompt ******  1.	Listado de departamentos (con toda la informaci?n disponible) de los departamentos cuya localizaci?n sea 1500 ....
+
+SELECT * 
+FROM pr3_departments
+WHERE location_id = 1500;
+
+Prompt ******  2.	Listado con los nombres de los empleados que trabajan en el departamento cuyo identificador es 100 ....
+
+SELECT first_name, last_name  
+FROM pr3_employees
+WHERE department_id = 100;
+
+Prompt ******  3.	Listado con los nombres de los empleados que no tienen jefe ....
+
+SELECT e.first_name, e.last_name  
+FROM pr3_employees e
+WHERE e.manager_id is null;
+
+Prompt ******  3.	Listado con los nombres de los empleados que no tienen jefe ....
+
+SELECT e.first_name, e.last_name  
+FROM pr3_employees e
+WHERE e.manager_id is null;
+
+Prompt ******  4.	Listado con los identificadores de departamento de aquellos empleados que reciben alg?n tipo de comisi?n. Sin repetici?n ....
+
+SELECT DISTINCT e.department_id
+FROM pr3_employees e
+WHERE e.commission_pct is not null;
+
+Prompt ******  5.	Listado con los nombres de los empleados (ordenados por apellido) que trabajan en el departamento Finance ....
+
+SELECT e.first_name, e.last_name
+FROM pr3_employees e, pr3_departments d
+WHERE e.department_id = d.department_id
+  AND d.department_name = 'Finance'
+ORDER BY e.first_name;
+
+Prompt ******  6.	Nombres de los empleados que tienen personal a su cargo, es decir, que son jefes de alg?n empleado. Sin repetici?n ....
+
+SELECT distinct em.first_name, em.last_name  
+FROM pr3_employees ee, pr3_employees em
+WHERE ee.manager_id = em.employee_id;
+
+Prompt ******  7.	Listado de los apellidos de los empleados que ganan m?s que su jefe, incluyendo tambi?n el apellido de su jefe y los salarios de ambos ....
+
+SELECT ee.last_name EMPLEADO, ee.salary SALEMP, em.last_name JEFE, em.salary SALJEFE 
+FROM pr3_employees ee, pr3_employees em
+WHERE ee.manager_id = em.employee_id
+  AND ee.salary >= em.salary;
+
+Prompt ******  8.	Listado con los nombres de los empleados que han trabajado en el departamento Sales ....
+
+SELECT distinct e.first_name,  e.last_name 
+FROM pr3_employees e, pr3_departments  d, pr3_job_history  h
+WHERE e.employee_id = h.employee_id
+  AND	 h.department_id = d.department_id  
+  AND d.department_name = 'Sales';
+
+Prompt ******  9.	Nombres de los puestos que desempe?an los empleados en el departamento IT, sin tuplas repetidas ....
+
+SELECT distinct j.job_title
+FROM pr3_employees e, pr3_departments d, pr3_jobs j
+WHERE d.department_name = 'IT'
+  AND e.department_id = d.department_id
+  AND j.job_id = e.job_id;
+
+
+Prompt ******  10.	Listado con los nombres de los empleados que trabajan en el departamento IT que no trabajan en Europa, junto con el nombre del pa?s en el que trabajan ....
+
+SELECT e.first_name, e.last_name, c.country_name
+FROM pr3_employees e, pr3_departments d, pr3_locations l, pr3_countries c,
+     pr3_regions r
+WHERE r.region_name <> 'Europe'
+  AND d.department_name ='IT'
+  AND e.department_id = d.department_id
+  AND d.location_id = l.location_id
+  AND l.country_id = c.country_id
+  AND c.region_id = r.region_id;
+
+Prompt ******  11.	Listado de los apellidos de los empleados del departamento SALES que no trabajan en el mismo departamento que su jefe, junto con el apellido de su jefe y el departamento en el que trabaja el jefe ....
+
+SELECT ee.first_name, ee.last_name, de.department_name,
+       em.first_name, em.last_name, dm.department_name
+FROM pr3_employees ee, pr3_employees em, pr3_departments de, pr3_departments dm
+WHERE ee.manager_id = em.employee_id
+  AND ee.department_id = de.department_id
+  AND em.department_id = dm.department_id
+  AND em.department_id <> ee.department_id;
+
+Prompt ******  12.	Listado con los nombres de los empleados que han trabajado en el departamento IT, pero que actualmente trabajan en otro departamento distinto ....
+
+(SELECT distinct E.first_name, E.last_name 
+ FROM pr3_employees E, pr3_departments  D, pr3_job_history  H
+ WHERE D.department_name = 'IT' 
+   AND H.department_id = D.department_id  
+   AND E.employee_id = H.employee_id)
+MINUS
+(SELECT e.first_name, e.last_name
+ FROM pr3_employees e, pr3_departments d
+WHERE d.department_name = 'IT'
+  AND e.department_id = d.department_id);
+
+COMMIT;

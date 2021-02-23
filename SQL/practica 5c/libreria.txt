@@ -1,0 +1,277 @@
+
+alter session set nls_date_format='DD/MM/YYYY';
+
+SET LINESIZE 500;
+SET PAGESIZE 500;
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -.
+prompt 1. Lista de libros disponibles con su autor y a?o de publicaci?n 
+prompt     ordenada por este ?ltimo.
+prompt 
+
+/*-- Solucion con cross JOIN, NO HACER AS?
+SELECT LB_Libro.ISBN, LB_Libro.Titulo, LB_Autor.Nombre, LB_Libro.Anio 
+FROM LB_Libro, LB_Autor_libro, LB_Autor 
+WHERE LB_Autor.idautor = LB_Autor_libro.AUTOR
+  AND LB_Autor_libro.ISBN = LB_Libro.ISBN
+ORDER BY LB_Libro.anio;
+*/
+-- Solucion con JOIN ON
+SELECT l.ISBN, l.Titulo, a.Nombre, l.Anio 
+FROM LB_Libro l JOIN LB_Autor_libro al 
+     ON l.ISBN = al.ISBN 
+     JOIN LB_Autor a 
+     ON a.idautor = al.AUTOR
+ORDER BY l.anio;
+-- Solucion 2 con JOIN USING
+SELECT ISBN, Titulo, Nombre, Anio 
+FROM LB_Libro JOIN LB_Autor_libro 
+     USING (ISBN)
+     JOIN LB_Autor 
+     ON idautor = AUTOR
+ORDER BY anio;
+
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 2. Lista de libros disponibles publicados despu?s del a?o 2000.
+prompt 
+SELECT * FROM LB_Libro WHERE Anio > 2000;
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 3. Lista de Clientes que han realizado alg?n pedido.
+prompt 
+
+/*-- Solucion con cross JOIN. NO REALIZAR
+SELECT DISTINCT LB_Cliente.idcliente, LB_Cliente.Nombre 
+FROM LB_Cliente, LB_Pedido
+WHERE LB_Cliente.IDCLIENTE = LB_Pedido.IDCLIENTE;
+*/
+
+-- Solucion con natural JOIN. Mejor NO HACERLA
+SELECT DISTINCT idcliente, Nombre
+FROM LB_Cliente NATURAL JOIN LB_Pedido;
+
+-- Solucion con JOIN ON
+SELECT DISTINCT c.idcliente, c.Nombre
+FROM LB_Cliente c JOIN LB_Pedido p 
+     ON c.idcliente = p.idcliente;
+
+-- Solucion con JOIN using
+SELECT DISTINCT idcliente, Nombre
+FROM LB_Cliente JOIN LB_Pedido 
+     USING (idcliente);
+
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 4. Lista de clientes que han adquirido el libro con ISBN=4554672899910.
+prompt 
+
+-- Solucion con natural JOIN. Mejor NO HACERLA
+SELECT DISTINCT idcliente, Nombre 
+FROM LB_Cliente NATURAL JOIN LB_Pedido NATURAL JOIN LB_Libros_pedido
+WHERE ISBN='4554672899910';
+
+-- Solucion con JOIN ON
+SELECT DISTINCT c.idcliente, c.Nombre 
+FROM LB_Cliente c JOIN LB_Pedido p 
+     ON c.idcliente = p.idcliente 
+     JOIN LB_Libros_pedido lp ON p.idPedido = lp.idPedido
+WHERE lp.ISBN='4554672899910';
+
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 5. Lista de los clientes y los libros adquiridos por ellos cuyo
+prompt    nombre (del cliente) contenga 'San'.
+prompt
+
+SELECT c.idcliente, c.Nombre, l.Titulo 
+FROM LB_Cliente c JOIN LB_Pedido p ON c.idcliente = p.idcliente 
+     JOIN LB_Libros_pedido lp ON p.idPedido = lp.idPedido
+     JOIN LB_Libro l ON lp.ISBN = l.ISBN
+WHERE c.Nombre like '%San%';
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 6. Lista de Clientes que hayan comprado libros de m?s de 10 euros.
+prompt
+
+SELECT DISTINCT c.idcliente, c.Nombre
+FROM LB_Cliente c JOIN LB_Pedido p ON c.idcliente = p.idcliente 
+     JOIN LB_Libros_pedido lp ON p.idPedido = lp.idPedido
+     JOIN LB_Libro l ON lp.ISBN = l.ISBN
+WHERE l.PrecioVenta > 10;
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 7. Clientes y fecha de pedidos que han realizado que no han sido
+prompt    expedidos aun.
+prompt 
+
+SELECT c.idcliente, c.nombre, p.fechapedido 
+FROM LB_Cliente c JOIN LB_Pedido p ON c.idcliente = p.idcliente 
+WHERE p.FechaExped is null;
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 8. Lista de clientes que NO han comprado libros de precio superior
+prompt    a 10 euros.
+prompt 
+
+SELECT nombre 
+FROM LB_Cliente
+MINUS
+SELECT c.nombre
+FROM LB_Cliente c JOIN LB_Pedido p ON c.idcliente = p.idcliente 
+     JOIN LB_Libros_pedido lp ON p.idPedido = lp.idPedido
+     JOIN LB_Libro l ON lp.ISBN = l.ISBN
+WHERE l.precioventa > 10;
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 9. Lista de libros vendidos con precio superior a 30 euros o
+prompt    publicados antes del a?o 2000
+prompt 
+
+SELECT Titulo, Anio, precioventa 
+FROM LB_Libro 
+WHERE precioventa > 30 OR Anio < 2000;
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 10. Clientes que han hecho m?s de un pedido el mismo d?a.
+prompt 
+
+-- Solucion utilizando joins con dos apariciones de la tabla pedido.
+SELECT DISTINCT c.nombre 
+FROM LB_Cliente c JOIN LB_Pedido p1 ON c.idcliente = p1.idcliente 
+     JOIN LB_Pedido p2 
+     ON c.IDCLIENTE = p2.IDCLIENTE AND p1.IDPEDIDO <> p2.IDPEDIDO
+WHERE p1.FECHAPEDIDO = p2.FECHAPEDIDO;
+
+-- Solucion utilizando GROUP BY y subconsulta
+SELECT nombre 
+FROM LB_Cliente c
+WHERE 2 <= (
+      SELECT count(*) FROM LB_Pedido p
+      WHERE c.IDCLIENTE = p.IDCLIENTE
+      GROUP BY p.idcliente, p.FechaPedido);
+
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 11. Lista de t?tulos de libros vendidos y cantidad.
+prompt 
+
+SELECT l.ISBN, Titulo, sum(Cantidad) "Numero ejemplares"
+FROM LB_Libro l, LB_Libros_Pedido lp
+WHERE l.ISBN = lp.ISBN
+GROUP BY l.ISBN, Titulo;
+
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 12. Lista de Clientes junto al importe total gastado en la librer?a.
+prompt 
+
+SELECT c.IdCliente, c.Nombre, sum(PrecioVenta*Cantidad) "Importe total"
+FROM LB_Cliente c JOIN LB_Pedido p ON c.IdCliente = p.IdCliente
+     JOIN LB_Libros_Pedido lp ON p.IdPedido = lp.IdPedido
+     JOIN LB_Libro l ON lp.ISBN = l.ISBN
+GROUP BY c.IdCliente, c.Nombre;
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 13. Ganancias obtenidas por la librer?a con las ventas.
+prompt 
+
+SELECT sum(PrecioVenta*Cantidad) "Total ventas" , sum(PrecioCompra*Cantidad) "Total compras",
+       sum(PrecioVenta*Cantidad) - sum(PrecioCompra*Cantidad) "Ganancias"
+FROM LB_Libro l JOIN LB_Libros_Pedido lp ON l.ISBN = lp.ISBN;
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 14. Lista de importe total de pedidos por fecha, que se hayan realizado 
+prompt     despu?s del 01/12/2011 y no hayan sido expedidos.
+prompt 
+
+SELECT p.FechaPedido, sum(l.PrecioVenta*Cantidad) "Importe total"
+FROM LB_Libro l JOIN LB_Libros_Pedido lp ON l.ISBN = lp.ISBN
+     JOIN LB_Pedido p ON lp.IdPedido = p.IdPedido
+WHERE p.FechaExped IS NULL
+GROUP BY p.FechaPedido
+HAVING p.FechaPedido >= TO_DATE('01/12/2011');
+
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 15. Pedidos con importe superior a 100 euros.
+prompt 
+
+SELECT p.IdPedido, p.FechaPedido, sum(l.PrecioVenta*Cantidad) "Importe pedido"
+FROM LB_Libro l JOIN LB_Libros_Pedido lp ON l.ISBN = lp.ISBN
+     JOIN LB_Pedido p ON lp.IdPedido = p.IdPedido
+GROUP BY p.IdPedido, p.FechaPedido
+HAVING sum(l.PrecioVenta*Cantidad) > 100;
+
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 16. Pedidos con importe total que contengan m?s de un titulo.
+prompt 
+
+SELECT p.IdPedido, p.FechaPedido, sum(l.PrecioVenta*Cantidad) "Importe pedido", count(*) "Num. Titulos"
+FROM LB_Libro l JOIN LB_Libros_Pedido lp ON l.ISBN = lp.ISBN
+     JOIN LB_Pedido p ON lp.IdPedido = p.IdPedido
+GROUP BY p.IdPedido, p.FechaPedido
+HAVING count(*) > 1;
+
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 17. Pedidos con importe total que contengan m?s de 4 libros (ejemplares).
+prompt 
+
+SELECT p.IdPedido, p.FechaPedido, sum(l.PrecioVenta*Cantidad) "Importe pedido", sum(Cantidad) "Num. Ejemplares"
+FROM LB_Libro l JOIN LB_Libros_Pedido lp ON l.ISBN = lp.ISBN
+     JOIN LB_Pedido p ON lp.IdPedido = p.IdPedido
+GROUP BY p.IdPedido, p.FechaPedido
+HAVING sum(Cantidad) > 4;
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 18. Lista de libros m?s caros.
+prompt 
+
+SELECT l.Titulo, l.PrecioVenta
+FROM LB_Libro l
+WHERE PrecioVenta = (SELECT max(PrecioVenta) FROM LB_Libro);
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 19. Libros de los que no se haya vendido ning?n ejemplar o cuyo beneficio sea inferior a 5 euros.
+prompt 
+
+SELECT l.ISBN, l.Titulo
+FROM LB_Libro l
+WHERE l.ISBN NOT IN (SELECT ISBN FROM LB_Libros_Pedido) 
+      OR l.PrecioVenta - l.PrecioCompra < 5;
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 20. Clientes que hayan comprado m?s de un ejemplar de un t?tulo en alguna ocasi?n.
+prompt 
+
+-- Solucion con subconsulta correlacionada
+SELECT DISTINCT c.idCliente, c.Nombre
+FROM LB_Cliente c
+WHERE exists (
+      SELECT p.IdPedido
+      FROM LB_Libros_Pedido lp JOIN LB_Pedido p ON lp.IdPedido = p.IdPedido
+      WHERE c.IdCliente = p.IdCliente
+      GROUP BY p.IdPedido
+      HAVING count(*) > 1);
+
+-- Solucion con joins
+SELECT DISTINCT c.idCliente, c.Nombre
+FROM LB_Cliente c JOIN LB_Pedido p ON c.idCliente = p.idCliente
+     JOIN LB_Libros_Pedido lp ON lp.IdPedido = p.IdPedido
+GROUP BY c.idCliente, c.Nombre, p.IdPedido
+HAVING count(*) > 1;
+
+
+prompt -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+prompt 21. Lista de Nombre de cliente, numero de pedido, isbn y t?tulo de
+prompt libros adquiridos. Si no han adquirido ning?n libro mostrar el
+prompt nombre del cliente tambi?n.
+prompt 
+
+SELECT DISTINCT c.idcliente, c.Nombre, p.idPedido, lp.ISBN, l.Titulo
+FROM LB_Cliente c LEFT OUTER JOIN 
+     (LB_Pedido p JOIN LB_Libros_pedido lp ON p.idPedido = lp.idPedido
+     JOIN LB_Libro l ON lp.ISBN = l.ISBN)  ON c.idcliente = p.idcliente
+ORDER BY c.idCliente;

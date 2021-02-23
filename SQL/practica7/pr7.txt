@@ -1,0 +1,224 @@
+    SHOW ERRORS;
+    SET SERVEROUTPUT ON;
+/*
+1.	Procedimiento almacenado llamado pedidosCliente que reciba como par?metro 
+el id de un cliente (customer_id) y muestre por pantalla sus datos personales 
+(customer_id, cust_first_name, cust_last_name), junto con un listado con los 
+datos de los pedidos que ha realizado (order_id, order_date, order_status y order_total), 
+ordenados crecientemente por fecha. 
+En caso de error (el id del cliente no existe o no hay pedidos para ese cliente), 
+deber? mostrarse por pantalla un mensaje de advertencia explicando el error. 
+Al finalizar el listado se deber? mostrar la suma de los importes de todos los pedidos del cliente. 
+Incluye un bloque de c?digo an?nimo para probar el procedimiento. 
+Ejemplo de salida tras llamar al procedimiento pedidosCliente con 4 ids distintos:
+*/
+    CREATE OR REPLACE PROCEDURE pedidosCliente (cId IN pr5_customers.customer_id%TYPE) AS
+      nombre pr5_customers.cust_first_name%TYPE;
+      apellido pr5_customers.cust_last_name%TYPE;
+      
+      CURSOR c_pedidos is
+        SELECT order_id id, to_char(order_date, ' dd/mm/yy hh24:mi:ss')    
+               fechaPedido, order_status estado, order_total importeTotal
+        FROM pr5_orders
+        WHERE customer_id = cId;
+        
+      EVacio EXCEPTION;
+      lPedidos c_pedidos%ROWTYPE;
+      sumPedidos pr5_orders.order_total%TYPE;
+    BEGIN
+      SELECT cust_first_name, cust_last_name
+      INTO nombre, apellido
+      FROM pr5_customers
+      WHERE customer_id = cId;
+      
+      DBMS_OUTPUT.PUT_LINE('-------------------------------------------------');
+      DBMS_OUTPUT.PUT_LINE('Id: ' || cId);
+      DBMS_OUTPUT.PUT_LINE('Nombre: ' || nombre);
+      DBMS_OUTPUT.PUT_LINE('Apellido: ' || apellido);
+      DBMS_OUTPUT.NEW_LINE();
+      
+      sumPedidos:=0;
+      OPEN c_pedidos;
+      FETCH c_pedidos INTO lpedidos;
+      IF c_pedidos%ROWCOUNT = 0 THEN 
+        RAISE EVacio;
+      ELSE
+        DBMS_OUTPUT.PUT_LINE('Pedidos:');
+        WHILE c_pedidos%found
+        LOOP
+          DBMS_OUTPUT.PUT_LINE('    C?digo: '|| lpedidos.id);
+          DBMS_OUTPUT.PUT_LINE('    Fecha: '|| lpedidos.fechaPedido);
+          DBMS_OUTPUT.PUT_LINE('    Estado: '|| lpedidos.estado);  
+          DBMS_OUTPUT.PUT_LINE('    Importe: '|| lpedidos.importeTotal);
+          DBMS_OUTPUT.NEW_LINE();
+          sumPedidos := sumPedidos + lpedidos.importeTotal;
+          FETCH c_pedidos INTO lpedidos;
+        END LOOP;
+        DBMS_OUTPUT.PUT_LINE('Total Pedidos: '|| sumPedidos);
+      END IF;
+      CLOSE c_pedidos;
+    EXCEPTION
+      WHEN no_data_found THEN
+        DBMS_OUTPUT.PUT_LINE('------------------------------------------------');
+        DBMS_OUTPUT.PUT_LINE('ERROR: ID ' || cId || ' no encontrado');
+      WHEN eVacio THEN
+        DBMS_OUTPUT.PUT_LINE('No hay pedidos para el cliente con id:' || cId);
+    END;
+/
+    BEGIN
+      pedidosCliente(101);
+      pedidosCliente(102);
+      pedidosCliente(1);
+      pedidosCliente(981);
+    END;
+/
+
+/*
+2.	Procedimiento almacenado llamado revisaPedidos cuya misi?n es comprobar la 
+consistencia de los datos de todos los pedidos. 
+El campo order_total de la tabla pr5_ORDERS debe almacenar la suma del precio 
+todos los elementos del pedido (unit_price * quantity). 
+El procedimiento debe verificar estos datos para todos los pedidos, y cuando 
+el campo order_total no se corresponda con la suma de los elementos deber? 
+mostrar un mensaje indicando el n?mero de pedido y el total actual, el total 
+calculado a partir de los datos de la tabla pr5_ORDER_ITEMS. 
+Si todos los pedidos est?n correctos se mostrar? un mensaje indicando que la comprobaci?n ha sido un ?xito.
+*/
+    CREATE OR REPLACE PROCEDURE revisaPedidos AS
+              
+        CURSOR cOrderIncorrectos IS
+          SELECT O.order_id, O.order_total totalOrder, SUM(OI.quantity * OI.unit_price) totalOrderItem
+          FROM pr5_Orders O JOIN pr5_Order_Items OI ON O.order_id = OI.order_id
+          GROUP BY O.order_id, O.order_total
+          HAVING O.order_total <> SUM(OI.quantity * OI.unit_price);
+    
+        totalIncorrectos INTEGER;
+        rPedido cOrderIncorrectos %ROWTYPE;
+      BEGIN 
+        DBMS_OUTPUT.PUT_LINE('------ Pedidos incorrectos: --------');
+        totalIncorrectos :=0;
+        
+        OPEN cOrderIncorrectos;
+        FETCH cOrderIncorrectos INTO rPedido;
+        WHILE cOrderIncorrectos%found
+        LOOP
+          DBMS_OUTPUT.PUT_LINE('Pedido: '|| rPedido.order_id);
+          DBMS_OUTPUT.PUT_LINE('totalOrder: '|| rPedido.totalOrder);
+          DBMS_OUTPUT.PUT_LINE('totalOrderItem: '|| rPedido.totalOrderItem);  
+          DBMS_OUTPUT.NEW_LINE();
+          totalIncorrectos:= totalIncorrectos +1;
+          FETCH cOrderIncorrectos INTO rPedido;
+        END LOOP;
+        CLOSE cOrderIncorrectos;
+        IF totalIncorrectos = 0 THEN
+          DBMS_OUTPUT.put_line('Ninguno');
+        END IF;
+    END;
+/
+    BEGIN
+      revisaPedidos;
+    END;
+/
+
+
+/*
+3.	Nos dicen que es conveniente reflejar en la tabla PRODUCT_INFORMATION la cantidad total disponible de cada producto en todos los almacenes de la empresa. Para cumplir con este nuevo requisito debes de hacer lo siguiente:
+*/
+-- a.	Modificar la tabla PRODUCT_INFORMATION y a?adir el campo quantity.
+    ALTER TABLE pr5_product_information ADD (quantity INTEGER);
+-- b.	Crear un bloque de PL/SQL an?nimo que actualice autom?ticamente todas las filas de la tabla para reflejar su cantidad en los almacenes. Si alg?n producto est? sin existencias la cantidad de la tabla PRODUCT_INFORMATION debe de estar a 0.
+    DECLARE
+        CURSOR prodCantidadTotal IS 
+           SELECT product_id identidad, sum(pr5_inventories.QUANTITY_ON_HAND) cantidad
+           FROM PR5_PRODUCT_INFORMATION join pr5_inventories 
+                USING (product_id)
+           GROUP BY product_id 
+           ORDER BY 2;
+           
+    -- SOLO es necesario declarar la variable elemC si uso la opcion while
+    --    elemC prodCantidadTotal%ROWTYPE;
+    BEGIN
+    
+        FOR elemC IN prodCantidadTotal LOOP
+            UPDATE pr5_product_information 
+            SET QUANTITY = elemC.cantidad  
+            WHERE elemC.identidad = PRODUCT_ID;
+        END LOOP; 
+    -- Con blucle WHILE****************
+    /*
+        OPEN prodCantidadTotal;
+    
+        FETCH prodCantidadTotal INTO elemC;
+        WHILE prodCantidadTotal%FOUND LOOP 
+    
+            UPDATE pr5_product_information 
+            SET QUANTITY = elemC.cantidad  
+            WHERE elemC.identidad = PRODUCT_ID;
+    
+            FETCH prodCantidadTotal INTO elemC;
+        END LOOP; 
+        
+        CLOSE prodCantidadTotal; 
+    */
+        UPDATE pr5_product_information 
+        SET quantity = 0 
+        WHERE quantity IS NULL;
+    END;
+/
+
+-- c.	Crea un procedimiento almacenado llamado actualizaPIQuantity que reciba como par?metros un identificador de producto y una cantidad y actualice en la tabla PRODUCT_INFORMATION la cantidad del producto sum?ndole la cantidad recibida por par?metro.
+    CREATE OR REPLACE PROCEDURE actualizaPIQuantity (prodId pr5_product_information.product_id%TYPE, prodQuantity INTEGER) IS
+    BEGIN
+      UPDATE pr5_product_information 
+      SET quantity = quantity + prodQuantity 
+      WHERE product_id = prodId;
+    END actualizaPIQuantity;
+/
+
+-- d.	Crea un disparador que cada vez que se actualice la cantidad de un producto en la tabla INVENTORIES, actualice la cantidad total en la tabla PRODUCT_INFORMATION. Debes de hacer uso del procedimiento creado en el apartado anterior.
+CREATE OR REPLACE TRIGGER updateProductQuantity
+  AFTER UPDATE OF quantity_on_hand ON pr5_inventories
+  FOR EACH ROW
+BEGIN
+  actualizaPIQuantity (:old.product_id, :new.quantity_on_hand - :old.quantity_on_hand);
+END;
+/
+
+-- e.	Comprueba que el disparador creado funciona correctamente.
+SELECT product_id, quantity_on_hand 
+FROM pr5_inventories where product_id=3247;
+
+SELECT quantity 
+FROM pr5_product_information 
+WHERE product_id=3247;
+
+UPDATE pr5_inventories 
+SET quantity_on_hand = quantity_on_hand+100 
+WHERE product_id=3247;
+
+SELECT quantity 
+FROM pr5_product_information 
+WHERE product_id=3247;
+
+/*
+PRODUCT_ID QUANTITY_ON_HAND
+---------- ----------------
+      3247              175
+      3247              162
+      3247              148
+      3247              136
+      3247              225
+
+
+  QUANTITY
+----------
+       846
+
+
+5 filas actualizadas.
+
+
+  QUANTITY
+----------
+      1346
+*/

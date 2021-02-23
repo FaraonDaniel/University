@@ -1,0 +1,127 @@
+REM  Pr?ctica 6: Restricciones de dominio y disparadores
+
+Prompt  ****** 1. A?ade a la tabla job_history una restricci?n que compruebe que siempre la fecha de finalizaci?n es superior a la fecha de comienzo.
+   
+ALTER TABLE pr3_job_history 
+ADD CONSTRAINT CK_Date CHECK (end_date > start_date);
+
+Prompt  ****** 2. A?ade a la tabla customers las siguientes restricciones:
+Prompt  ****** a. El l?mite de cr?dito no puede superar los 5000.
+
+ALTER TABLE pr5_customers
+ADD CONSTRAINT CK_CreditLimit CHECK (credit_limit <= 5000);
+
+Prompt   ****** b. El identificador de cliente es mayor que cero.
+
+   ALTER TABLE pr5_customers
+   ADD CONSTRAINT CK_CustomerId CHECK (customer_id > 0);
+Prompt  ****** 3. A?ade a la tabla product_information una restricci?n que limite los valores del estado del producto a: orderable, planned, under development y obsolete.
+
+   ALTER TABLE pr5_product_information
+   ADD CONSTRAINT CK_ProductStatus CHECK (product_status in ('orderable','planned','under development','obsolete'));
+   
+Prompt   ****** Prueba a insertar datos en las tablas modificadas que cumplan y que no cumplan las restricciones y comprueba que todo funciona como deber?a.
+Prompt   ****** Apartado 2: Disparadores
+Prompt   ****** Crea los siguientes disparadores para el esquema de la base de datos que estamos manejando en las ?ltimas pr?cticas.
+Prompt   ****** 1. Disparador que cada vez que se inserte una l?nea de pedido (tabla ORDER_ITEMS) se actualice autom?ticamente en la tabla ORDERS el total de dicho pedido.
+
+CREATE OR REPLACE TRIGGER pr6_update_unit_price
+ AFTER INSERT ON pr5_order_items
+ FOR EACH ROW 
+ BEGIN 
+    UPDATE pr5_orders
+    SET order_total = order_total + (:new.unit_price * :new.quantity)
+    WHERE order_id = :new.order_id; 
+ END;
+/
+
+Prompt ****** Una vez creado el disparador prueba que todo funciona correctamente insertando la siguientes tupla en la tabla order_items:
+
+INSERT INTO  pr5_order_items (ORDER_ID, LINE_ITEM_ID, PRODUCT_ID,UNIT_PRICE,QUANTITY)
+VALUES (2458,10,2457,4.4,10);
+
+Prompt ****** Comprueba que una vez insertada la tupla anterior los datos de la tabla ORDERS se han actualizado correctamente y la columna ORDER_TOTAL para el ORDER_ID 2458 ahora tiene el valor: 78323,6.
+Prompt ****** 2. Disparador que cada vez que se cambie el salario m?nimo de un puesto en la tabla JOBS muestre un mensaje si hay alg?n empleado con el puesto modificado que cobre un salario menor al nuevo salario m?nimo.
+
+CREATE OR REPLACE TRIGGER pr6_update_min_salary
+ BEFORE UPDATE OF min_salary ON pr3_jobs
+ FOR EACH ROW 
+ DECLARE
+  minSalEmp NUMBER;
+ BEGIN 
+  SELECT MIN(salary) 
+  INTO minSalEmp
+  FROM pr3_employees 
+  WHERE job_id = :new.job_id;
+  
+  IF (:new.min_salary > minSalEmp) THEN
+    RAISE_APPLICATION_ERROR(-20000, 'Hay empleados que no cumplen con el nuevo salario m?nimo');
+  END IF;
+ END;
+/
+
+
+Prompt ****** Para comprobar que el disparador creado funciona correctamente cambia el salario m?nimo de AD_ASST en la tabla JOBS a 5000. Deber?a de mostrarse el mensaje de error de tu disparador y no realizarse la actualizaci?n. Prueba ahora a cambiar el salario m?nimo de AD_ASST a 4400. En este caso el salario deber?a de actualizarse y no se deber?a de mostrar ning?n error.
+
+UPDATE pr3_jobs
+SET MIN_SALARY = 5000
+WHERE JOB_ID = 'AD_ASST';
+
+/*
+Informe de error -
+ORA-20000: Hay empleados que no cumplen con el nuevo salario m?nimo
+ORA-06512: en "USUARIO33.UPDATE_MIN_SALARY", l?nea 10
+ORA-04088: error durante la ejecuci?n del disparador 'USUARIO33.UPDATE_MIN_SALARY'
+*/
+
+UPDATE pr3_jobs
+SET MIN_SALARY = 4400
+WHERE JOB_ID = 'AD_ASST';
+
+-- 1 fila actualizadas.
+
+Prompt ****** 3. Disparador que cada vez que se inserte en order_item una l?nea de pedido, inserte autom?ticamente el n?mero de l?nea de pedido que le corresponda (el siguiente al ?ltimo del mismo order).
+Prompt ****** > Necesitaras usar la funci?n NVL de Oracle.
+   CREATE OR REPLACE TRIGGER pr6_insert_ord_line
+    BEFORE INSERT ON pr5_order_items
+    FOR EACH ROW 
+    DECLARE 
+    	new_line number; 
+    BEGIN 
+    SELECT (NVL(MAX(line_item_id),0)+1) INTO new_line 
+    FROM pr5_order_items
+    WHERE order_id = :new.order_id; 
+   
+    :new.line_item_id := new_line; 
+   END;
+   /
+   
+Prompt ****** Para comprobar que tu disparador funciona correctamente prueba a insertar la siguente tupla en la tabla ORDER_ITEMS:
+
+INSERT INTO pr5_order_items (ORDER_ID,PRODUCT_ID,UNIT_PRICE,QUANTITY)
+VALUES (2388,2457,4.4,10);
+
+Prompt ****** Comprueba que la tupla se ha insertado correctamente con el valor 14 en el campo LINE_ITEM_ID.
+
+Prompt ****** 4. Disparador que por cada actualizaci?n de los campos job_id o department_id en la tabla employees, es decir, por cada cambio de puesto o departamento de un empleado, inserte una tupla en la tabla job_history con la informaci?n correspondiente al puesto anterior que desempe??.
+
+   CREATE OR REPLACE TRIGGER pr6_update_job_history
+     AFTER UPDATE OF job_id, department_id ON pr3_employees
+     FOR EACH ROW
+     BEGIN
+     	  INSERT INTO pr3_job_history 
+       (employee_id, start_date, end_date, job_id, department_id)
+       VALUES(:old.employee_id, :old.hire_date, sysdate, 
+              :old.job_id, :old.department_id);
+   END;
+   /
+   
+Prompt ****** Para probar el nuevo disparador cambia el puesto del empleado con id 100 a AD_VP y el departamento del empleado 205 a 50 y comprueba que los datos insertados en la tabla JOB_HISTORY son los siguientes:
+
+   UPDATE pr3_employees
+   SET JOB_ID = 'AD_VP'
+   WHERE EMPLOYEE_ID = 100;
+   
+   UPDATE pr3_employees
+   SET DEPARTMENT_ID = 50
+   WHERE EMPLOYEE_ID = 205;

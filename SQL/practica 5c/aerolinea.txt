@@ -1,0 +1,165 @@
+
+alter session set nls_date_format='DD/MM/YYYY';
+
+SET LINESIZE 500;
+SET PAGESIZE 500;
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 1.  Código y nombre de los pilotos certificados para pilotar aviones Boeing.
+prompt 
+
+SELECT e.eid, e.nombre
+FROM pr5c1_empleado e JOIN pr5c1_certificado c ON e.eid = c.eid
+     JOIN pr5c1_avion a ON c.aid = a.aid
+WHERE a.nombre LIKE 'Boeing%';
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 2.  Código de aviones que pueden hacer el recorrido de Los ??ngeles a Chicago
+prompt     sin repostar.
+prompt 
+
+SELECT a.aid, a.nombre 
+FROM pr5c1_avion a, pr5c1_vuelo v
+WHERE v.distancia < a.autonomia 
+  AND UPPER(v.origen) = 'LOS ANGELES' AND UPPER(v.destino) = 'CHICAGO';
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 3.  Pilotos certificados para operar con aviones con una autonomía superior a
+prompt     3000 millas pero no certificados para aviones Boeing.
+prompt 
+
+SELECT DISTINCT e.eid, e.nombre
+FROM pr5c1_empleado e JOIN pr5c1_certificado c ON e.eid = c.eid
+     JOIN pr5c1_avion a ON c.aid = a.aid
+WHERE a.autonomia > 3000 
+  AND e.eid NOT IN (SELECT e.eid
+                    FROM pr5c1_empleado e JOIN pr5c1_certificado c 
+                         ON e.eid = c.eid
+                         JOIN pr5c1_avion a ON c.aid = a.aid
+                    WHERE a.nombre LIKE 'Boeing%'
+                   );
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 4.  Empleados con el salario más elevado.
+prompt 
+
+SELECT e.eid, e.nombre, e.salario 
+FROM pr5c1_empleado e
+WHERE salario = (SELECT max(salario) 
+                 FROM pr5c1_empleado);
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 5.  Empleados con el segundo salario más alto.
+prompt 
+
+SELECT e.eid, e.nombre, salario 
+FROM pr5c1_empleado e
+WHERE salario = (SELECT max(salario) 
+                 FROM pr5c1_empleado
+      	      	 WHERE salario != (SELECT max(salario) FROM pr5c1_empleado)
+                );
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 6.  Empleados con mayor número de certificaciones para volar.
+prompt 
+
+SELECT e.eid, e.nombre, count(*) "Numero certificaciones"
+FROM pr5c1_empleado e JOIN pr5c1_certificado c ON e.eid = c.eid
+GROUP BY e.eid, e.nombre
+HAVING count(*) >= ALL (SELECT count(*) 
+                        FROM pr5c1_certificado c2
+       		            GROUP BY c2.eid);
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 7.  Empleados certificados para 3 modelos de avión.
+prompt 
+
+SELECT e.eid, e.nombre, count(*) "Numero de aviones certif."
+FROM pr5c1_empleado e JOIN pr5c1_certificado c ON e.eid = c.eid
+GROUP BY e.eid, e.nombre
+HAVING count(*) >= 3;
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 8.  Nombre de los aviones tales que todos los pilotos certificados para operar
+prompt     con ellos tengan salarios superiores a 80.000 euros.
+prompt
+
+SELECT a.nombre
+FROM pr5c1_avion a
+WHERE 80000 <= ALL (SELECT e.salario 
+                    FROM pr5c1_certificado c JOIN pr5c1_empleado e 
+                         ON e.eid = c.eid
+		            WHERE c.aid = a.aid);
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 9.  Para cada piloto certificado para operar con más de 3 modelos de avión 
+prompt     indicar el código de empleado y la autonomía máxima de los aviones que puede
+prompt     pilotar.
+prompt 
+
+SELECT e.eid, e.nombre, max(a.autonomia) "Autonomia Maxima"
+FROM pr5c1_empleado e JOIN pr5c1_certificado c ON e.eid = c.eid
+     JOIN pr5c1_avion a ON c.aid = a.aid
+GROUP BY e.eid, e.nombre
+HAVING count(*) > 3;
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 10. Nombre de los pilotos cuyo salario es inferior a la ruta más barata entre
+prompt     Los ??ngeles y Honolulu.
+prompt 
+
+SELECT e.eid, e.nombre, e.salario
+FROM pr5c1_empleado e JOIN pr5c1_certificado c ON e.eid = c.eid
+WHERE e.salario < (SELECT min(v.precio) 
+                   FROM pr5c1_vuelo v
+      		       WHERE UPPER(v.origen) = 'LOS ANGELES'
+		             AND UPPER(v.destino) = 'HONOLULU');
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 11. Mostrar el nombre de los aviones con autonomía de vuelo superior a 1.000 
+prompt     millas junto con la media salarial de los pilotos certificados en dichos
+prompt     aviones.
+prompt
+
+SELECT a.aid, a.nombre, round(avg(e.salario),2) "Salario medio"
+FROM pr5c1_avion a JOIN pr5c1_certificado c ON a.aid = c.aid
+     JOIN pr5c1_empleado e ON c.eid = e.eid
+WHERE a.autonomia > 1000
+GROUP BY a.aid, a.nombre;
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 12. Calcular la diferencia entre la media salarial de todos los empleados
+prompt     (incluidos los pilotos) y la de los pilotos.
+prompt 
+
+-- Es importante tener en cuenta que cada piloto se debe contar una vez para calcular la
+-- media: no se debe realizar un JOIN en la segunda subconsulta.
+SELECT round(mediaTodos - mediaPilotos, 2) "Diferencia"
+FROM (SELECT AVG(salario) mediaTodos 
+      FROM pr5c1_empleado),
+     (SELECT AVG(salario) mediaPilotos 
+      FROM pr5c1_empleado 
+      WHERE eid IN (SELECT eid FROM pr5c1_certificado));
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 13. Listar el nombre y los salarios de los empleados (no pilotos) cuyo salario 
+prompt     sea superior a la media salarial de los pilotos.
+prompt    
+
+SELECT e.nombre, e.salario 
+FROM pr5c1_empleado e 
+WHERE e.eid NOT IN (SELECT eid FROM pr5c1_certificado)
+  AND e.salario > (SELECT AVG(salario) 
+                   FROM pr5c1_empleado  
+                   WHERE eid IN (SELECT eid FROM pr5c1_certificado));
+
+prompt .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. 
+prompt 14. Nombre de los pilotos certificados solo para modelos con autonomía superior 
+prompt     a 1.000 millas.
+prompt
+
+SELECT e.nombre
+FROM pr5c1_empleado e JOIN pr5c1_certificado c ON e.eid = c.eid
+     JOIN pr5c1_avion a ON c.aid = a.aid
+GROUP BY e.eid, e.nombre
+HAVING min(autonomia) > 1000;
