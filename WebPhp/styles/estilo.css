@@ -1,0 +1,659 @@
+/*#################CONTENEDOR PRINCIPAL (BODY)##############*/
+body {
+	/*background-color:#2907e7;*/
+	margin: 0px;
+	height:100%;
+	width:100%;
+	overflow: scroll;
+}
+
+div#contenedor {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction:column;
+
+}
+
+
+/*#################CABECERA################*/
+
+div#cabecera {
+	padding: 10px;
+	min-height: 130px;
+	display: flex;
+	justify-content: space-between;
+	text-align: center;
+	background: linear-gradient(to right, #6e7f11bd, rgb(182, 52, 52));
+	background-color:  #6e7f11bd;
+}
+div#cabecera .logoCabecera{
+	align-self:flex-start;	
+	width: 20%;
+}
+div#cabecera .logoCabecera a{
+	width: 30%;
+	height: 100%;
+}
+div#cabecera .logoCabecera a img{
+	margin: 4px;
+	width: 100%;
+	height: 100%;
+}
+div#cabecera div.btndiv{
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+}
+div#cabecera .botonesLogin{
+	align-self:flex-end;
+	display: flex;
+	margin-right: 20px;
+}
+div#plogin form fieldset div.grupo-control input:focus,div#plogin form fieldset div.grupo-control button:focus{
+	outline:0px;
+}
+div#pregistro form fieldset div.grupo-control input:focus,div#pregistro form fieldset div.grupo-control button:focus{
+	outline:0px;
+}
+div#pAddEnunciado form fieldset div.grupo-control input:focus,div#pAddEnunciado form fieldset div.grupo-control button:focus{
+	outline:0px;
+}
+div#cabecera .botonesLogin button {
+	background-color: #f1f1f1;
+	border-bottom-style: 2px solid black;
+	margin-left: 15px;
+	color: black;
+	font-size: 16px;
+	padding: 8px 16px;
+	border: none;
+	cursor: pointer;
+	border-radius: 5px;
+	text-align: center;
+  }
+  div#cabecera .botonesLogin button:hover {
+	background-color: #6e7f11bd ;
+	color: white;
+	}
+	.nav.navbar-nav li:hover{
+		background-color: #b4b3b3;
+		color: white;
+	}
+	.navbar.navbar-default{
+		margin-bottom: 0px;
+	}
+
+	.nav.navbar-nav.navbar-right.nick{
+		text-decoration:none;
+		color: #471A48;
+	}
+
+
+/*##################CONTENIDO####################*/
+div#contenidoAsig{
+	min-height: 400px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	text-align: center;
+	background-color: rgb(246, 247, 241);
+}
+div#contenido {
+	justify-content: center;
+	min-height: 400px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	background-color: rgb(246, 247, 241);
+}
+
+div#contenidoCodeMirror {
+	justify-content: center;
+	min-height: 400px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	background-color: rgb(246, 247, 241);
+}
+ div#contenido div#codigo{
+	text-align: left;
+	margin:30px;
+ }
+
+/*Pagina de inicio*/
+
+div#contenido .paginaInicio{
+	display: flex;
+	height: 100%;
+	justify-content: space-around;
+	align-items: center;
+	flex-direction:column;
+}
+div#contenido .paginaInicio .eslogan{
+	margin:40px;
+	font-family: serif;
+	width: 100%;
+	font-size: 60px;
+	height: 100%;
+}
+div#contenido .paginaInicio .codigos{
+	width:60%;
+	margin:40px;
+	height:100%;
+}
+div#contenido .codigos img{
+	width: 100%;
+	height: 70%;
+}
+
+/*Login*/
+
+div#contenido div#plogin {
+	display: flex;
+	height: 400px;
+	width: 100%;
+	align-items: center;
+	justify-content: center;
+} 
+div#contenido div#plogin #formLogReg fieldset{
+	min-height: 200px;
+	height: 70%;
+	width: 540px;
+	display: flex;
+	border: 1px solid black;
+	margin: 0 auto;
+	-moz-border-radius:8px;
+    -webkit-border-radius:8px;	
+    border-radius:8px;	
+
+}
+div#contenido div#plogin #formLogReg legend {
+	color: #fff;
+	background: #303030;
+	border: 1px solid black;
+	padding: 2px 6px;
+	margin-bottom: 30px;
+} 
+
+
+/*Registro*/
+
+div#contenido div#pregistro {
+	display: flex;
+	height: 100%;
+	width: 100%;
+	margin:30px;
+	align-items: center;
+	justify-content: center;
+} 
+div#contenido div#pregistro #formLogReg fieldset{
+	min-height: 200px;
+	height: 70%;
+	width: 540px;
+	display: flex;
+	border: 1px solid black;
+	margin: 0 auto;
+	-moz-border-radius:8px;
+    -webkit-border-radius:8px;	
+    border-radius:8px;	
+
+}
+div#contenido div#pregistro #formLogReg legend {
+	color: #fff;
+	background: #303030;
+	border: 1px solid black;
+	padding: 2px 6px;
+	margin-bottom: 30px;
+} 
+div#contenido div fieldset .grupo-control {
+	margin: 20px;
+	margin-top: 10px;
+	min-width: 500px;
+	display: flex;
+	align-items: center;
+	justify-content:  space-around;
+	border-radius: 6px;
+}
+
+div#contenido div fieldset .grupo-control input{
+  font-size: 15px;
+  line-height: 1.5;
+  color: #0a0101;
+
+  display: block;
+  width: 75%;
+  background: #e6e6e6;
+  height: 40px;
+  border-radius: 15px;
+  padding: 0 60px 0 40px;
+}
+
+div#contenido div fieldset .grupo-control button{
+	position:relative;
+	background: #e6e6e6;
+  height: 40px;
+  border-radius: 15px;
+}
+
+div#contenido div fieldset .grupo-control span{
+	position:relative;
+}
+
+/*Menu administrador*/
+
+
+div#contenido .inicioAdmin select {
+	
+	line-height: 2.5em;
+    word-break: break-word;
+    margin-bottom: 2.5em;
+	
+}
+
+div#contenido .inicioAdmin option {
+    font-weight: normal;
+    display: flex;
+    white-space: pre;
+    min-height: 1.2em;
+    padding: 10px 80px 10px 20px;
+}
+
+div#contenido .inicioAdmin input {
+	padding: 10px 80px 10px 20px;
+	width: 250px;
+	
+}
+div#contenido .inicioAdmin{
+	display: flex; 
+	align-self: center; 
+	justify-content: space-around;
+	align-items: center; 
+	width:50%; 
+
+}
+
+div#contenido .añadirTema{
+	display: flex; 
+	align-self: center; 
+	justify-content: space-around;
+	align-items: center; 
+
+}
+
+
+div#contenido .inicioAdmin button{
+  color: #318aac ; 
+  font-size: 20px;
+  font-weight: 500;
+  background: rgba(0,0,0,0);
+  border: 2px solid;
+  border-color: #ffffff;
+	transition: all 1s ease;
+	padding: 10px;
+	text-align: center;
+	margin: 5px;
+
+}
+
+div#contenido .inicioAdmin ul{
+	list-style: none
+	
+}
+
+div#contenido .inicioAdmin button:hover {
+	
+	background: rgb(17, 207, 198);
+   color: #fff !important;
+}
+
+
+/*Menu Profesor*//*Menu alumno*/
+
+div#contenidoAsig div.contenidoProfesor ,div#contenidoAsig div.contenidoAlumno{
+	display: flex;
+	height: 100%;
+	width: 75%;
+	padding: 20px;
+	justify-content: space-between;
+	text-align: center;
+	flex-direction: column;
+	align-items: flex-start;
+} 
+div#contenidoAsig div.contenidoProfesor div.asignatura,div#contenidoAsig div.contenidoAlumno div.asignatura{
+	width: 70%;
+	padding: 4px;
+	margin: 5px;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+}
+div#contenidoAsig div.contenidoProfesor div.asignatura .asignaturaTitulo,div#contenidoAsig div.contenidoAlumno div.asignatura .asignaturaTitulo{
+	width: 100%;
+	min-height: 40px;
+	border: 3px black solid;
+	border-radius: 15px;
+	background-color: rgb(255, 243, 243);
+	display: flex;
+	margin-bottom: 5px;
+	justify-content: space-around;
+	align-items: center;
+}
+div#contenidoAsig div.contenidoProfesor div.asignatura .asignaturaTitulo div span{
+	width:50%;
+	margin-left: 30px;
+}
+div#contenidoAsig div.contenidoProfesor div.asignatura .asignaturaTitulo .asignaturaNombre .deplegable{
+	width: 10%;
+}
+div#contenidoAsig div.contenidoProfesor div.asignatura .asignaturaTitulo .asignaturaNombre, div#contenidoAsig div.contenidoAlumno div.asignatura .asignaturaTitulo .asignaturaNombre{
+	width: 75%;
+	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+	font-size: 25px;
+	display: flex;
+	justify-content: flex-start;
+}
+/*BOTONES AÑADIR*/
+div#contenidoAsig div.contenidoProfesor div.asignatura .asignaturaTitulo .añadirTema, div#contenidoAsig div.contenidoProfesor div.asignatura .tema .añadirEnunciado{
+	text-decoration: none;
+	padding:   5px;
+	font-weight: 400;
+	font-size: 10px;
+	color: #ffffff;
+	background-color: #0fb000;
+	border-radius: 6px;
+	border: 2px solid #0fb000;
+}
+
+div#contenidoAsig div.contenidoProfesor div.asignatura .asignaturaTitulo .añadirTema a , div#contenidoAsig div.contenidoProfesor div.asignatura .tema .añadirEnunciado a{
+	text-decoration: none;
+	color: #ffffff;
+}
+div#contenidoAsig div.contenidoProfesor div.asignatura .tema, div#contenidoAsig div.contenidoAlumno div.asignatura .tema{
+	width: 90%;
+	min-height: 45px;
+	padding-left: 10px;
+	border: 2px black solid;
+	margin-top: 5px;
+	background-color: rgb(204, 223, 168);
+	margin: 3px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+div#contenidoAsig div.contenidoProfesor div.asignatura .tema .temaTitulo, div#contenidoAsig div.contenidoAlumno div.asignatura .tema .temaTitulo{
+	width: 30%;
+	font-size: 20px;
+	font-family: fantasy;
+}
+div#contenidoAsig div.contenidoProfesor div.asignatura .tema .añadirEnunciado{
+	width: 24%;
+}
+/*BOTON ELIMINAR */
+div#contenidoAsig div.contenidoProfesor div.asignatura .tema .eliminarEnunciado{
+	text-decoration: none;
+	padding:   5px;
+	font-weight: 400;
+	font-size: 10px;
+	color: #ffffff;
+	background-color: #dd1313;
+	border-radius: 6px;
+	border: 2px solid #8a0707;
+}
+div#contenidoAsig div.contenidoProfesor div.asignatura .tema .eliminarEnunciado a{
+	color: #ffffff;
+	text-decoration: none;
+}
+div#contenidoAsig div.contenidoProfesor div.asignatura .tema .eliminarEnunciado{
+	width: 24%;
+	margin-right: 15px;
+}
+div#contenidoAsig div.contenidoProfesor div.asignatura .enunciado, div#contenidoAsig div.contenidoAlumno div.asignatura div.enunciado{
+	width: 80%;
+	min-height: 40px;
+	padding-left: 10px;
+	background-color: rgb(124, 165, 240);
+	border: 1px black solid;
+	margin-top: 5px;
+	margin: 3px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+div#contenidoAsig div.contenidoProfesor div.asignatura .enunciado .enlacesEnunciadoProfesor{
+	width: 60%;
+	min-height: 30px;
+	margin-left: 6px;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+}
+
+div.optionAlumnos{
+	width: 60%;
+	min-height: 30px;
+	margin-left: 6px;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+}
+/*Botones enunciado*/
+
+div#contenidoAsig div.contenidoProfesor div.asignatura .enunciado .enlacesEnunciadoProfesor a{
+	color: #ffffff;
+	font-size: 12px;
+}
+
+div#contenidoAsig div.contenidoAlumno div.asignatura div.crearPracticas{
+	width: 60%;
+	min-height: 30px;
+	padding-left: 10px;
+	border: 2px rgb(0, 0, 0) solid;
+	background-color: rgb(233, 221, 221);
+	
+	margin-top: 5px;
+	margin: 3px;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	font-family: 'Times New Roman', Times, serif;
+	
+}
+
+div#contenidoAsig div.contenidoAlumno div.asignatura div.crearPracticas a{
+	text-decoration: none;
+	color:rgb(0, 0, 0);
+}
+div#contenidoAsig div.contenidoAlumno div.asignatura div.crearPracticas:hover{
+	background-color: rgb(131, 255, 93);
+}
+
+div#contenidoAsig div.contenidoAlumno div.asignatura .practicaAl:hover{
+	background-color: rgb(129, 126, 25);
+	color:white;
+}
+div#contenidoAsig div.contenidoAlumno div.asignatura div.menuPracticas{
+	width: 60%;
+	min-height: 30px;
+	padding-left: 10px;
+	margin-top: 5px;
+	margin: 3px;
+	display: flex;
+	justify-content: flex-end;
+	font-family: 'Times New Roman', Times, serif;
+	align-items: center;
+}
+div#contenidoAsig div.contenidoAlumno div.asignatura div.menuPracticas div.practicaAl, div#contenidoAsig div.contenidoAlumno div.asignatura div.menuPracticas div.borrarPractica {
+	width: 100%;
+	min-height: 30px;
+	border: 2px black solid;
+	margin-top: 5px;
+	margin: 5px;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	
+}
+div#contenidoAsig div.contenidoAlumno div.asignatura div.menuPracticas div.practicaAl a, div#contenidoAsig div.contenidoAlumno div.asignatura div.menuPracticas div.borrarPractica a{
+	text-decoration: none;
+	display: flex;
+	color: black;
+	justify-content: space-around;
+	align-items: center;
+	margin: 5px;
+}
+div#contenidoAsig div.contenidoAlumno div.asignatura div.menuPracticas .practicaAl:hover, div#contenidoAsig div.contenidoAlumno div.asignatura div.menuPracticas .borrarPractica:hover{
+	background-color: rgb(81, 170, 211);
+	border-color: rgb(247, 245, 243);
+	color: black;
+}
+
+div#contenidoAsig div.contenidoAlumno div.asignatura div.practicaAl{
+display: flex;
+justify-content: flex-end;
+border: 2px black solid;
+}
+
+div#contenidoAsig div#pcrearPractica{
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+}
+
+/*Añadir enunciado*/
+div#contenidoAsig .addEnunciado{
+	width: 100%;
+	height: 100%;
+	background-color: #89ca3e;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+}
+/*Ver enunciado*/
+iframe{
+	position: absolute;
+    top:0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+/*Pagina de detalles*/
+
+div#contenido .splitUp {
+  position: relative;
+  width: auto;
+  float: center;
+  height: 30%;
+  background-color: #FFFFFF;
+  border: 2px solid black;
+  padding: 12px;
+  margin:30px;
+  font-size: 20px;
+  text-decoration:none;
+}
+#contenido .splitUp h1{
+	font-size: 30px;
+}
+#contenido .splitUp a{
+	text-decoration:none;
+	color: rgb(31, 230, 130);
+}
+#contenido .splitUp a:hover{
+	color: rgb(230, 31, 31);
+}
+#contenido .splitDown {
+  position: inherit;
+  width: 100%;
+  height:70%;
+  font-size: 20px;
+}
+
+/* Contacto*/
+
+div#contenido #personales{
+	margin: 30px ; 
+	padding : 20px ; 
+}
+div#contenido div#contacto{
+	width: 100%;
+	display: flex;
+	justify-content:space-around ;
+	align-items: center;
+}
+div#contenido div#contacto div.formContacto{
+	width: 70%;
+	margin: 10px;
+	margin-bottom: 17px;
+	display: flex;
+	justify-content:space-around ;
+	align-items: center;
+}
+
+/*CODEMIRROR VER CORRECIÓN*/
+div#contenido div#correccionCodemirror{
+	margin-bottom: 30px;
+	margin-top: 30px;
+	display: flex;
+	justify-content:space-around ;
+	flex-direction: row;
+}
+
+div#contenido div#correccionCodemirror div#practicaAlumnoCorrecion{
+	margin:10px;
+}
+div#contenido div#correccionCodemirror div#correccionAlumno{
+	align-items: flex-start;
+	margin-left: 20px;
+	margin-top:20px;
+	margin-bottom: 25px;
+	margin-right: 20px;
+	min-height: 540px;
+}
+
+div#contenido div#correccionCodemirror div#correccionAlumno .botonesCorregir{
+	display: flex;
+	width: 300px;
+	justify-content: space-around;
+	margin: 20px;
+	margin-left: 70px;
+
+}
+/*Tabla*/
+div.tablaPracticas{
+width:80%;
+}
+.tablaPracticasTitulo{
+	display: flex;
+	justify-content: space-between;
+	width: 90%;
+	margin:40px;
+	align-items: center;
+}
+
+/*####################PIE########################*/
+
+div#pie {
+	min-height: 40px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
+	background-color: #333;
+	color: white;
+	bottom: 0;
+}
+div#pie a{
+	text-decoration: none;
+	color:white;
+	margin-left: 15px;
+}
+div#pie div{
+	display: flex;
+	justify-content: space-around;
+}
+div#pie a:hover{
+	text-decoration: underline;
+	color: #89ca3e
+}
+
